@@ -1,0 +1,16 @@
+node_modules/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+
+# ---- Private: never pushed to the public repo ----
+# Internal production/business notes.
+DIRECTOR_CONTRACT.md
+# Internal curriculum audit trail (teacher working notes).
+CURRICULUM_NOTES.md
+# Real Supabase keys for local runs. Stays on your machine; the Pages deploy
+# injects these from repo Secrets at build time instead (see
+# .github/workflows/pages.yml). The committed supabase-config.example.js shows
+# the shape without any secret.
+supabase-config.js

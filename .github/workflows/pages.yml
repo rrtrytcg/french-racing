@@ -1,0 +1,46 @@
+# Deploys the game to GitHub Pages. Supabase keys live only in repo Secrets
+# (Settings → Secrets and variables → Actions) and are injected at build time,
+# so they never appear in git. The site is assembled with `git archive`, which
+# also guarantees no .git directory or ignored file ships in the artifact.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Assemble site
+        run: |
+          mkdir -p public
+          git archive HEAD | tar -x -C public
+          {
+            echo "export const SUPABASE_URL = '${{ secrets.SUPABASE_URL }}';"
+            echo "export const SUPABASE_ANON_KEY = '${{ secrets.SUPABASE_ANON_KEY }}';"
+          } > public/supabase-config.js
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
