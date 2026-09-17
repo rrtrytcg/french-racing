@@ -209,8 +209,8 @@ test('importer rejects malformed input with line-numbered errors', () => {
   assert.match(parsePairSet(SAMPLE_PAIRS.join('\n'), '   ').errors[0], /name/);
   const blankOk = parsePairSet('\n' + SAMPLE_PAIRS.join('\n') + '\n\n', 'Blank lines');
   assert.equal(blankOk.ok, true);
-  const tooMany = Array.from({ length: 61 }, (_, i) => `Line ${i} en. = Ligne ${i} fr.`);
-  assert.match(parsePairSet(tooMany.join('\n'), 'Big').errors[0], /at most 60/);
+  const tooMany = Array.from({ length: 201 }, (_, i) => `Line ${i} en. = Ligne ${i} fr.`);
+  assert.match(parsePairSet(tooMany.join('\n'), 'Big').errors[0], /at most 200/);
 });
 
 test('shuffled orders are deterministic permutations that vary by seed', () => {

@@ -204,7 +204,7 @@ export function gradeAnswer(challenge,input) {
 // ---- Imported sentence sets ----
 // Teachers paste one pair per line: English sentence = French sentence.
 // Each pair becomes one challenge; pairs deal round-robin across the gears.
-const PAIR_LIMIT = 60;
+const PAIR_LIMIT = 200;
 const PAIR_MINIMUM = 6;
 
 function hashSeed(text) {
