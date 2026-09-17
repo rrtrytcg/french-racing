@@ -39,17 +39,15 @@ const BANK = {
   2: [
     jumble('g2-calme',2,'Put the words in order: I am calm.','Je suis calme.',['calme.','Je','suis'],'Start with Je.'),
     jumble('g2-mal',2,'Put the words in order: It is going badly.','Ça va mal.',['mal.','Ça','va'],'Start with Ça.'),
-    jumble('g2-name',2,'Put the words in order: I am called Antoine.','Je m’appelle Antoine.',['Antoine.','Je','m’appelle'],'Start with Je.'),
     jumble('g2-bien',2,'Put the words in order: It is going very well.','Ça va très bien.',['très','bien.','Ça','va'],'The intensifier sits before bien.'),
     jumble('g2-triste',2,'Put the words in order: I am very sad.','Je suis très triste.',['triste.','Je','très','suis'],'The feeling word goes last.'),
     jumble('g2-soir',2,'Put the words in order: Good evening. It is going badly.','Bonsoir. Ça va mal.',['va','Bonsoir.','mal.','Ça'],'The greeting comes first.')
   ],
   3: [
     typed('g3-suis',3,'Fill the gap: Je ___ calme.','suis',[],[],'Write only the missing word. Meaning: I am calm.'),
-    typed('g3-antoine',3,'Fill the gap: Je m’appelle ___.','Antoine',[],[],'Write only the missing name.'),
     typed('g3-bien',3,'Fill the gap: Ça va ___ bien.','très',['super'],[],'Write the intensifier: very or really.'),
-    typed('g3-enerve',3,'Fill the gap: Je suis un peu ___ (m).','énervé',[],['énervée'],'Write the feeling word. Masculine ending.'),
-    typed('g3-detendue',3,'Fill the gap: Je suis très ___ (f).','détendue',[],['détendu'],'Write the feeling word. Feminine ending: do not forget the final e.'),
+    typed('g3-enerve',3,'Fill the gap: Je suis un peu ___ (m).','énervé',[],['énervée'],'Write the feeling word meaning “annoyed”. Masculine ending.'),
+    typed('g3-detendue',3,'Fill the gap: Je suis très ___ (f).','détendue',[],['détendu'],'Write the feeling word meaning “relaxed”. Feminine ending: do not forget the final e.'),
     typed('g3-comment',3,'Fill the gap: ___ tu t’appelles ?','Comment',[],[],'Write the question word meaning “how”.')
   ],
   4: [
@@ -273,7 +271,8 @@ function makePairChallenge(pair, index, gear) {
     const blanks = gear === 3 ? [pickBlankToken(tokens)] : pickTwoBlanks(tokens);
     const gapPrompt = tokens.map((tok, i) => (blanks.includes(i) ? '___' : tok)).join(' ');
     const answer = gear === 3 ? stripEdgePunct(tokens[blanks[0]]) : pair.fr;
-    return { id, gear, type: 'typed', prompt: `Fill the gap${blanks.length > 1 ? 's' : ''}: ${gapPrompt}`, answer, accepted: [answer], partials: [], hint };
+    const clozeHint = `From your imported set. Meaning: ${pair.en}`;
+    return { id, gear, type: 'typed', prompt: `Fill the gap${blanks.length > 1 ? 's' : ''}: ${gapPrompt}`, answer, accepted: [answer], partials: [], hint: clozeHint };
   }
   const tokens = splitWords(pair.fr);
   let shown = tokens;

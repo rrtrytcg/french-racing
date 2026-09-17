@@ -2,14 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEMO_BANK, getChallenge, gradeAnswer, normalizeAnswer, correctionDiff, parsePairSet, getSetChallenge, shuffledOrder, gearChallengeCount } from '../content.mjs';
 
-test('pass 01 bank exposes 36 unique challenges with the four locked exercise types', () => {
+test('pass 01 bank exposes 34 unique challenges with the four locked exercise types', () => {
   assert.equal(typeof DEMO_BANK.title, 'string');
   assert.ok(DEMO_BANK.phrases.length >= 6);
   const ids = new Set();
   const expected = { 1: 'typed', 2: 'jumble', 3: 'typed', 4: 'jumble', 5: 'typed', 6: 'typed' };
   for (let gear = 1; gear <= 6; gear += 1) {
-    const challenges = Array.from({ length: 6 }, (_, serial) => getChallenge(gear, serial));
-    assert.equal(challenges.length, 6);
+    const count = gearChallengeCount(gear);
+    const challenges = Array.from({ length: count }, (_, serial) => getChallenge(gear, serial));
+    assert.equal(challenges.length, count);
     for (const challenge of challenges) {
       assert.equal(challenge.gear, gear);
       assert.equal(challenge.type, expected[gear]);
@@ -21,7 +22,7 @@ test('pass 01 bank exposes 36 unique challenges with the four locked exercise ty
       if (challenge.type === 'jumble') assert.ok(Array.isArray(challenge.tokens) && challenge.tokens.length >= 3);
     }
   }
-  assert.equal(ids.size, 36);
+  assert.equal(ids.size, 34);
 });
 
 test('each gear uses its assigned task format', () => {
@@ -59,7 +60,7 @@ test('challenge selection is cyclic and returns independent copies', () => {
 
 test('typed grading normalizes case, accents, apostrophes and punctuation', () => {
   assert.equal(normalizeAnswer('  Je m’appelle   Antoine!!! '), 'je m appelle antoine');
-  const cloze = getChallenge(3, 4); // détendue
+  const cloze = getChallenge(3, 3); // détendue
   assert.equal(gradeAnswer(cloze, 'DETENDUE.').grade, 'correct');
   const sentence = getChallenge(5, 1); // Ça va mal.
   assert.equal(gradeAnswer(sentence, "ca va MAL!!!").grade, 'correct');
@@ -77,7 +78,7 @@ test('english answers are graded by meaning, never by french text', () => {
 });
 
 test('agreement errors earn partial credit through curated variants', () => {
-  const feminine = getChallenge(3, 4); // détendue (f)
+  const feminine = getChallenge(3, 3); // détendue (f)
   assert.equal(gradeAnswer(feminine, 'détendue').grade, 'correct');
   assert.equal(gradeAnswer(feminine, 'détendu').grade, 'partial');
   assert.equal(gradeAnswer(feminine, 'heureuse').grade, 'miss');
@@ -95,7 +96,7 @@ test('reorder grading rewards exact order and partial word sets', () => {
 });
 
 test('correction highlights only the missing feminine e', () => {
-  const challenge = getChallenge(3, 4); // détendue
+  const challenge = getChallenge(3, 3); // détendue
   const segments = correctionDiff(challenge, 'détendu');
   assert.equal(segments.map((part) => part.text).join(''), 'détendue');
   assert.deepEqual(segments.filter((part) => part.changed).map((part) => part.text), ['e']);
@@ -113,12 +114,12 @@ test('correction segments cover the model and flag misplaced reorder words', () 
 });
 
 test('correction returns null for correct answers, passes and unknown types', () => {
-  const challenge = getChallenge(3, 4);
+  const challenge = getChallenge(3, 3);
   assert.equal(correctionDiff(challenge, 'détendue'), null);
   assert.equal(correctionDiff(challenge, ''), null);
   assert.equal(correctionDiff(challenge, '   '), null);
   assert.equal(correctionDiff({ type: 'choice', answer: 'x', accepted: ['x'] }, 'y'), null);
-  const alt = getChallenge(3, 2); // très/super
+  const alt = getChallenge(3, 1); // très/super
   assert.equal(correctionDiff(alt, 'super'), null);
 });
 
@@ -222,7 +223,8 @@ test('shuffled orders are deterministic permutations that vary by seed', () => {
 });
 
 test('builtin gear counts are exposed for order mapping', () => {
-  for (let gear = 1; gear <= 6; gear += 1) assert.equal(gearChallengeCount(gear), 6);
+  const expected = { 1: 6, 2: 5, 3: 5, 4: 6, 5: 6, 6: 6 };
+  for (let gear = 1; gear <= 6; gear += 1) assert.equal(gearChallengeCount(gear), expected[gear]);
   assert.throws(() => gearChallengeCount(0), /Invalid challenge gear/);
 });
 

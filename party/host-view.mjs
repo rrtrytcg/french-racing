@@ -285,7 +285,7 @@ export const SUPABASE_ANON_KEY = 'paste-the-anon-public-key';</pre>
       <p class="podium-subtitle">${rows[0] ? `${esc(rows[0].name)} takes the chequered flag.` : 'The race is complete.'}</p>
       <div class="podium">${places.map((car, i) => `<div class="podium-place ${i === 0 ? 'first' : i === 1 ? 'second' : 'third'}"><div class="podium-car" style="background:${esc(car.color)}">${car.carNumber}</div><div class="podium-name">${esc(car.name)}</div><div class="podium-block">${i + 1}</div></div>`).reverse().join('')}</div>
       <table class="final-table"><thead><tr><th>Pos</th><th>Driver</th><th>Distance</th><th>Status</th></tr></thead>
-      <tbody>${rows.map((car, i) => `<tr><td class="rank">${i + 1}</td><td><i class="mini-chip" style="background:${esc(car.color)}"></i> ${esc(car.name)}</td><td>${car.position}/${track.length}</td><td>${car.retired ? 'DNF' : car.finished ? 'Finished' : 'Classified'}</td></tr>`).join('')}</tbody></table>
+      <tbody>${rows.map((car, i) => `<tr><td class="rank">${i + 1}</td><td><i class="mini-chip" style="background:${esc(car.color)}"></i> ${esc(car.name)}</td><td>${car.position}/${track.length}</td><td>${car.retired ? 'DNF' : car.finished ? 'Finished' : 'Not finished'}</td></tr>`).join('')}</tbody></table>
       <div class="button-row"><button class="outline-button" data-h="new-room">New room</button><button class="primary-button" data-h="again">Race again, same grid</button></div></section>`;
     setMeta('Final classification');
     if (!S.fireworksOn) {
