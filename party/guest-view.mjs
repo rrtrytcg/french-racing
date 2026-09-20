@@ -21,7 +21,7 @@ export async function bootGuest({ code, password }) {
     if (!guestId) { guestId = makeGuestId(); sessionStorage.setItem(idKey, guestId); }
   } catch { guestId = makeGuestId(); }
   const S = {
-    config: null, configError: '', netStatus: 'offline', transport: null, client: null,
+    config: null, configError: '', netStatus: 'offline', transport: null, transportPromise: null, client: null,
     name: '', password, joining: false, placed: [], challengeId: '', flash: '',
     seenRound: 0, prevPos: null, fireworksOn: false, timerId: 0, everSubscribed: false,
   };
@@ -29,41 +29,51 @@ export async function bootGuest({ code, password }) {
   const me = () => S.client?.snapshot().me || null;
 
   async function ensureTransport() {
-    if (S.transport || !S.config) return false;
-    S.netStatus = 'connecting';
-    render();
-    try {
-      const transport = await createSupabaseTransport({
-        url: S.config.url, key: S.config.key, roomCode: code,
-        onMessage: (payload) => S.client && S.client.handle(payload),
-        onStatus: (status) => {
-          const was = S.everSubscribed;
-          S.netStatus = status === 'SUBSCRIBED' ? 'live' : status === 'CLOSED' ? 'offline' : 'reconnecting';
-          if (status === 'SUBSCRIBED') {
-            S.everSubscribed = true;
-            if (was) S.client && S.client.requestSync();
-          }
-          const badge = document.querySelector('#net-badge');
-          if (badge) badge.outerHTML = netBadge();
-          else render();
-        },
-      });
-      if (!transport.ready) {
+    if (S.transport && S.client) return true;
+    if (!S.config) return false;
+    if (S.transportPromise) return S.transportPromise;
+
+    S.transportPromise = (async () => {
+      S.netStatus = 'connecting';
+      render();
+      try {
+        const transport = await createSupabaseTransport({
+          url: S.config.url, key: S.config.key, roomCode: code,
+          onMessage: (payload) => S.client && S.client.handle(payload),
+          onStatus: (status) => {
+            const was = S.everSubscribed;
+            S.netStatus = status === 'SUBSCRIBED' ? 'live' : status === 'CLOSED' ? 'offline' : 'reconnecting';
+            if (status === 'SUBSCRIBED') {
+              S.everSubscribed = true;
+              if (was) S.client && S.client.requestSync();
+            }
+            const badge = document.querySelector('#net-badge');
+            if (badge) badge.outerHTML = netBadge();
+            else render();
+          },
+        });
+        if (!transport.ready) {
+          S.netStatus = 'error';
+          S.transport = null;
+          render();
+          return false;
+        }
+        S.transport = transport;
+        S.client = new GuestClient({ send: (payload) => S.transport.send(payload), roomCode: code, password: S.password, guestId });
+        S.client.onView = onClientView;
+        S.timerId = window.setInterval(tick, 500);
+        return true;
+      } catch (error) {
         S.netStatus = 'error';
-        S.transport = null;
+        S.configError = `Could not reach the race server (${error.message || 'network error'}). Ask your teacher, then retry.`;
         render();
         return false;
       }
-      S.transport = transport;
-      S.client = new GuestClient({ send: (payload) => S.transport.send(payload), roomCode: code, password: S.password, guestId });
-      S.client.onView = onClientView;
-      S.timerId = window.setInterval(tick, 500);
-      return true;
-    } catch (error) {
-      S.netStatus = 'error';
-      S.configError = `Could not reach the race server (${error.message || 'network error'}). Ask your teacher, then retry.`;
-      render();
-      return false;
+    })();
+    try {
+      return await S.transportPromise;
+    } finally {
+      S.transportPromise = null;
     }
   }
 
